@@ -11,7 +11,7 @@
 #
 
 # 默认IP由1.1修改为0.1
-sed -i 's/192.168.1.1/192.168.5.8/g' package/base-files/files/bin/config_generate
+sed -i 's/192.168.1.1/192.168.5.1/g' package/base-files/files/bin/config_generate
 
 # Add luci-app
 # rm -rf feeds/smpackage/{base-files,dnsmasq,firewall*,fullconenat,libnftnl,nftables,ppp,opkg,ucl,upx,vsftpd-alt,miniupnpd-iptables,wireless-regdb}
@@ -24,7 +24,7 @@ sed -i 's/192.168.1.1/192.168.5.8/g' package/base-files/files/bin/config_generat
 # merge_package main https://github.com/sbwml/luci-theme-argon feeds/luci/themes luci-theme-argon
 
 # 最大连接数修改为554288
-# sed -i '/customized in this file/a net.netfilter.nf_conntrack_max=554288' package/base-files/files/etc/sysctl.conf
+sed -i '/customized in this file/a net.netfilter.nf_conntrack_max=554288' package/base-files/files/etc/sysctl.conf
 
 # 修复上移下移按钮翻译
 # sed -i 's/<%:Up%>/<%:Move up%>/g' feeds/luci/modules/luci-compat/luasrc/view/cbi/tblsection.htm
