@@ -37,30 +37,30 @@ sed -i 's#top -n1#\/bin\/busybox top -n1#g' feeds/luci/modules/luci-base/root/us
 
 # ------------------PassWall 科学上网--------------------------
 # 移除 openwrt feeds 自带的核心库
-rm -rf feeds/packages/net/{xray-core,v2ray-geodata,sing-box,chinadns-ng,dns2socks,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-libev,shadowsocks-rust,shadowsocksr-libev,simple-obfs,tcping,trojan-plus,tuic-client,v2ray-plugin,xray-plugin,geoview}
+# rm -rf feeds/packages/net/{xray-core,v2ray-geodata,sing-box,chinadns-ng,dns2socks,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-libev,shadowsocks-rust,shadowsocksr-libev,simple-obfs,tcping,trojan-plus,tuic-client,v2ray-plugin,xray-plugin,geoview}
 # 核心库
-git clone https://github.com/xiaorouji/openwrt-passwall-packages package/passwall-packages
-rm -rf package/passwall-packages/{shadowsocks-rust,v2ray-geodata}
-merge_package v5 https://github.com/sbwml/openwrt_helloworld package/passwall-packages shadowsocks-rust v2ray-geodata
+# git clone https://github.com/xiaorouji/openwrt-passwall-packages package/passwall-packages
+# rm -rf package/passwall-packages/{shadowsocks-rust,v2ray-geodata}
+# merge_package v5 https://github.com/sbwml/openwrt_helloworld package/passwall-packages shadowsocks-rust v2ray-geodata
 # app
-rm -rf feeds/luci/applications/{luci-app-passwall,luci-app-ssr-libev-server}
+# rm -rf feeds/luci/applications/{luci-app-passwall,luci-app-ssr-libev-server}
 # git clone https://github.com/lwb1978/openwrt-passwall package/passwall-luci
-git clone https://github.com/xiaorouji/openwrt-passwall package/passwall-luci
+# git clone https://github.com/xiaorouji/openwrt-passwall package/passwall-luci
 # ------------------------------------------------------------
 
 # 优化socat中英翻译
 sed -i 's/仅IPv6/仅 IPv6/g' package/feeds/luci/luci-app-socat/po/zh_Hans/socat.po
 
 # SmartDNS
-rm -rf feeds/luci/applications/luci-app-smartdns
-git clone https://github.com/lwb1978/luci-app-smartdns package/luci-app-smartdns
+# rm -rf feeds/luci/applications/luci-app-smartdns
+# git clone https://github.com/lwb1978/luci-app-smartdns package/luci-app-smartdns
 # 替换immortalwrt 软件仓库smartdns版本为官方最新版
-rm -rf feeds/packages/net/smartdns
+# rm -rf feeds/packages/net/smartdns
 # cp -rf ${GITHUB_WORKSPACE}/patch/smartdns package/
-git clone https://github.com/lwb1978/openwrt-smartdns package/smartdns
+# git clone https://github.com/lwb1978/openwrt-smartdns package/smartdns
 # 添加 smartdns-ui
-echo "CONFIG_PACKAGE_luci-app-smartdns_INCLUDE_smartdns_ui=y" >> .config
-echo "CONFIG_PACKAGE_smartdns-ui=y" >> .config
+# echo "CONFIG_PACKAGE_luci-app-smartdns_INCLUDE_smartdns_ui=y" >> .config
+# echo "CONFIG_PACKAGE_smartdns-ui=y" >> .config
 
 # openssl Enable QUIC and KTLS support
 echo "CONFIG_OPENSSL_WITH_QUIC=y" >> .config
@@ -73,11 +73,11 @@ cp -f ${GITHUB_WORKSPACE}/patch/udpxy/Makefile feeds/packages/net/udpxy/Makefile
 sed -i 's#\"title\": \"udpxy\"#\"title\": \"UDPXY\"#g' feeds/luci/applications/luci-app-udpxy/root/usr/share/luci/menu.d/luci-app-udpxy.json
 
 # lukcy大吉
-git clone https://github.com/sirpdboy/luci-app-lucky package/lucky-packages
+# git clone https://github.com/sirpdboy/luci-app-lucky package/lucky-packages
 # git clone https://github.com/gdy666/luci-app-lucky.git package/lucky-packages
 
 # 集客AC控制器
-git clone https://github.com/lwb1978/openwrt-gecoosac package/openwrt-gecoosac
+# git clone https://github.com/lwb1978/openwrt-gecoosac package/openwrt-gecoosac
 # git clone -b v1.0 https://github.com/lwb1978/openwrt-gecoosac package/openwrt-gecoosac
 
 # zerotier
@@ -85,8 +85,8 @@ git clone https://github.com/lwb1978/openwrt-gecoosac package/openwrt-gecoosac
 # git clone https://github.com/lwb1978/luci-app-zerotier package/luci-app-zerotier
 
 # 定时网络唤醒
-rm -rf feeds/luci/applications/luci-app-timewol
-git clone https://github.com/lwb1978/luci-app-timewol package/luci-app-timewol
+# rm -rf feeds/luci/applications/luci-app-timewol
+# git clone https://github.com/lwb1978/luci-app-timewol package/luci-app-timewol
 
 # 添加主题
 rm -rf feeds/luci/themes/luci-theme-argon
