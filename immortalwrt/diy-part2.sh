@@ -28,9 +28,12 @@ source ${GITHUB_WORKSPACE}/immortalwrt/function.sh
 # 最大连接数修改为65535
 sed -i '/customized in this file/a net.netfilter.nf_conntrack_max=65535' package/base-files/files/etc/sysctl.conf
 
-# 修复上移下移按钮翻译
+# luci-compat - 修复上移下移按钮翻译
 sed -i 's/<%:Up%>/<%:Move up%>/g' feeds/luci/modules/luci-compat/luasrc/view/cbi/tblsection.htm
 sed -i 's/<%:Down%>/<%:Move down%>/g' feeds/luci/modules/luci-compat/luasrc/view/cbi/tblsection.htm
+
+# luci-compat - remove extra line breaks from description
+sed -i '/<br \/>/d' feeds/luci/modules/luci-compat/luasrc/view/cbi/full_valuefooter.htm
 
 # 修复procps-ng-top导致首页cpu使用率无法获取
 sed -i 's#top -n1#\/bin\/busybox top -n1#g' feeds/luci/modules/luci-base/root/usr/share/rpcd/ucode/luci
@@ -63,7 +66,7 @@ sed -i 's/仅IPv6/仅 IPv6/g' package/feeds/luci/luci-app-socat/po/zh_Hans/socat
 # echo "CONFIG_PACKAGE_smartdns-ui=y" >> .config
 
 # openssl Enable QUIC and KTLS support
-echo "CONFIG_OPENSSL_WITH_QUIC=y" >> .config
+# echo "CONFIG_OPENSSL_WITH_QUIC=y" >> .config
 # echo "CONFIG_OPENSSL_WITH_KTLS=y" >> .config
 
 # 替换udpxy为修改版，解决组播源数据有重复数据包导致的花屏和马赛克问题
@@ -71,6 +74,29 @@ rm -f feeds/packages/net/udpxy/Makefile
 cp -f ${GITHUB_WORKSPACE}/patch/udpxy/Makefile feeds/packages/net/udpxy/Makefile
 # 修改 udpxy 菜单名称为大写
 sed -i 's#\"title\": \"udpxy\"#\"title\": \"UDPXY\"#g' feeds/luci/applications/luci-app-udpxy/root/usr/share/luci/menu.d/luci-app-udpxy.json
+
+# 添加rtp2httpd
+git clone --depth=1 -b main https://github.com/stackia/rtp2httpd rtp2httpd_tmp
+rm -rf package/rtp2httpd-openwrt
+mv rtp2httpd_tmp/openwrt-support package/rtp2httpd-openwrt
+mkdir package/rtp2httpd-openwrt/rtp2httpd/src
+mv rtp2httpd_tmp/* package/rtp2httpd-openwrt/rtp2httpd/src
+rm -rf rtp2httpd_tmp
+rm -f package/rtp2httpd-openwrt/rtp2httpd/Makefile
+cp -f ${GITHUB_WORKSPACE}/patch/rtp2httpd/Makefile_core package/rtp2httpd-openwrt/rtp2httpd/Makefile
+rm -f package/rtp2httpd-openwrt/luci-app-rtp2httpd/Makefile
+cp -f ${GITHUB_WORKSPACE}/patch/rtp2httpd/Makefile_luci package/rtp2httpd-openwrt/luci-app-rtp2httpd/Makefile
+RTP2HTTPD_VERSION=$(curl -s https://api.github.com/repos/stackia/rtp2httpd/releases/latest | grep '"tag_name":' | sed -E 's/.*"v?([^"]+)".*/\1/')
+if [ -n "$RTP2HTTPD_VERSION" ]; then
+	RTP2HTTPD_PKG_VERSION=$(echo "$RTP2HTTPD_VERSION" | sed -E 's/-([a-z]+)\.([0-9]+)/_\1\2/g')
+	echo "rtp2httpd获取到版本：$RTP2HTTPD_VERSION"
+	echo "rtp2httpd转换为包版本：$RTP2HTTPD_PKG_VERSION"
+	sed -i "s|^\(PKG_VERSION:=\).*|\1$RTP2HTTPD_PKG_VERSION|" package/rtp2httpd-openwrt/rtp2httpd/Makefile
+	sed -i "s|^\(PKG_VERSION:=\).*|\1$RTP2HTTPD_PKG_VERSION|" package/rtp2httpd-openwrt/luci-app-rtp2httpd/Makefile
+	sed -i "s|^\([[:space:]]*AC_INIT([[:space:]]*\[rtp2httpd\][[:space:]]*,[[:space:]]*\[\)[^]]*\(\].*\)|\1$RTP2HTTPD_VERSION\2|" package/rtp2httpd-openwrt/rtp2httpd/src/configure.ac
+fi
+echo "CONFIG_PACKAGE_luci-app-rtp2httpd=y" >> .config
+echo "CONFIG_PACKAGE_rtp2httpd=y" >> .config
 
 # lukcy大吉
 # git clone https://github.com/sirpdboy/luci-app-lucky package/lucky-packages
@@ -88,11 +114,14 @@ sed -i 's#\"title\": \"udpxy\"#\"title\": \"UDPXY\"#g' feeds/luci/applications/l
 # rm -rf feeds/luci/applications/luci-app-timewol
 # git clone https://github.com/lwb1978/luci-app-timewol package/luci-app-timewol
 
+# 资源监控
+echo "CONFIG_PACKAGE_luci-app-statistics=y" >> .config
+
 # 添加主题
 rm -rf feeds/luci/themes/luci-theme-argon
 # git clone --depth=1 https://github.com/jerrykuku/luci-theme-argon package/luci-theme-argon
 merge_package openwrt-24.10 https://github.com/sbwml/luci-theme-argon package luci-theme-argon
-git clone --depth=1 -b js https://github.com/sirpdboy/luci-theme-kucat package/luci-theme-kucat
+git clone --depth=1 https://github.com/sirpdboy/luci-theme-kucat package/luci-theme-kucat
 
 # 取消自添加主题的默认设置
 find package/luci-theme-*/* -type f -print | grep '/root/etc/uci-defaults/' | while IFS= read -r file; do
@@ -193,7 +222,7 @@ sed -i 's/services/network/g' feeds/luci/applications/luci-app-upnp/root/usr/sha
 # vim - fix E1187: Failed to source defaults.vim
 pushd feeds/packages
 	vim_ver=$(cat utils/vim/Makefile | grep -i "PKG_VERSION:=" | awk 'BEGIN{FS="="};{print $2}' | awk 'BEGIN{FS=".";OFS="."};{print $1,$2}')
-	[ "$vim_ver" = "9.0" ] && {
+	[ "$vim_ver" = "9.1" ] && {
 		echo "修复 vim E1187 的错误"
 		# curl -s https://github.com/openwrt/packages/commit/699d3fbee266b676e21b7ed310471c0ed74012c9.patch | patch -p1
 		patch -p1 < ${GITHUB_WORKSPACE}/patch/vim/0001-vim-fix-renamed-defaults-config-file.patch
@@ -211,7 +240,6 @@ pushd feeds/packages/net/zerotier
 		cp -a "${GITHUB_WORKSPACE}/patch/zerotier/." .
 	}
 popd
-
 
 # 修正部分从第三方仓库拉取的软件 Makefile 路径问题
 find package/*/ -maxdepth 2 -path "*/Makefile" | xargs -i sed -i 's/..\/..\/luci.mk/$(TOPDIR)\/feeds\/luci\/luci.mk/g' {}
